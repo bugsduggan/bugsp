@@ -204,6 +204,8 @@ lval* lval_take(lval* v, int i) {
 }
 
 lval* builtin_len(lval* a) {
+    LASSERT(a, (a->count == 1),
+            "'len' passed too many arguments");
     LASSERT(a, (a->cell[0]->type == LVAL_QEXPR),
             "'len' passed incorrect type");
 
