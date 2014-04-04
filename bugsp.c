@@ -203,6 +203,15 @@ lval* lval_take(lval* v, int i) {
     return x;
 }
 
+lval* builtin_len(lval* a) {
+    LASSERT(a, (a->cell[0]->type == LVAL_QEXPR),
+            "'len' passed incorrect type");
+
+    lval* v = lval_num(a->cell[0]->count);
+    lval_del(a);
+    return v;
+}
+
 lval* builtin_head(lval* a) {
     LASSERT(a, (a->count == 1),
             "'head' passed too many arguments");
@@ -316,6 +325,7 @@ lval* builtin_op(lval* a, char* op) {
 }
 
 lval* builtin(lval* a, char* func) {
+    if (strcmp("len", func) == 0) { return builtin_len(a); }
     if (strcmp("list", func) == 0) { return builtin_list(a); }
     if (strcmp("head", func) == 0) { return builtin_head(a); }
     if (strcmp("tail", func) == 0) { return builtin_tail(a); }
@@ -373,13 +383,13 @@ int main(int argc, char**argv) {
     mpc_parser_t* Bugsp  = mpc_new("bugsp");
 
     mpca_lang(MPC_LANG_DEFAULT,
-        "                                                                                           \
-            number : /-?[0-9]+/ ;                                                                   \
-            symbol : \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | '+' | '-' | '*' | '/' ; \
-            sexpr  : '(' <expr>* ')' ;                                                              \
-            qexpr  : '{' <expr>* '}' ;                                                              \
-            expr   : <number> | <symbol> | <sexpr> | <qexpr> ;                                      \
-            bugsp  : /^/ <expr>* /$/ ;                                                              \
+        "                                                                                                     \
+            number : /-?[0-9]+/ ;                                                                             \
+            symbol : \"len\" | \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | '+' | '-' | '*' | '/' ; \
+            sexpr  : '(' <expr>* ')' ;                                                                        \
+            qexpr  : '{' <expr>* '}' ;                                                                        \
+            expr   : <number> | <symbol> | <sexpr> | <qexpr> ;                                                \
+            bugsp  : /^/ <expr>* /$/ ;                                                                        \
         ",
         Number, Symbol, Sexpr, Qexpr, Expr, Bugsp);
 
