@@ -242,6 +242,19 @@ lval* builtin_tail(lval* a) {
     return v;
 }
 
+lval* builtin_init(lval* a) {
+    LASSERT(a, (a->count == 1),
+            "'init' passed too many arguments");
+    LASSERT(a, (a->cell[0]->type == LVAL_QEXPR),
+            "'init' passed incorrect type");
+    LASSERT(a, (a->cell[0]->count != 0),
+            "'init' passed {}");
+
+    lval* v = lval_take(a, 0);
+    lval_del(lval_pop(v, v->count - 1));
+    return v;
+}
+
 lval* builtin_list(lval* a) {
     a->type = LVAL_QEXPR;
     return a;
@@ -331,6 +344,7 @@ lval* builtin(lval* a, char* func) {
     if (strcmp("list", func) == 0) { return builtin_list(a); }
     if (strcmp("head", func) == 0) { return builtin_head(a); }
     if (strcmp("tail", func) == 0) { return builtin_tail(a); }
+    if (strcmp("init", func) == 0) { return builtin_init(a); }
     if (strcmp("join", func) == 0) { return builtin_join(a); }
     if (strcmp("eval", func) == 0) { return builtin_eval(a); }
     if (strstr("+-/*", func)) { return builtin_op(a, func); }
@@ -385,13 +399,13 @@ int main(int argc, char**argv) {
     mpc_parser_t* Bugsp  = mpc_new("bugsp");
 
     mpca_lang(MPC_LANG_DEFAULT,
-        "                                                                                                     \
-            number : /-?[0-9]+/ ;                                                                             \
-            symbol : \"len\" | \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | '+' | '-' | '*' | '/' ; \
-            sexpr  : '(' <expr>* ')' ;                                                                        \
-            qexpr  : '{' <expr>* '}' ;                                                                        \
-            expr   : <number> | <symbol> | <sexpr> | <qexpr> ;                                                \
-            bugsp  : /^/ <expr>* /$/ ;                                                                        \
+        "                                                                                                                \
+            number : /-?[0-9]+/ ;                                                                                        \
+            symbol : \"len\" | \"list\" | \"head\" | \"tail\" | \"init\" | \"join\" | \"eval\" | '+' | '-' | '*' | '/' ; \
+            sexpr  : '(' <expr>* ')' ;                                                                                   \
+            qexpr  : '{' <expr>* '}' ;                                                                                   \
+            expr   : <number> | <symbol> | <sexpr> | <qexpr> ;                                                           \
+            bugsp  : /^/ <expr>* /$/ ;                                                                                   \
         ",
         Number, Symbol, Sexpr, Qexpr, Expr, Bugsp);
 
