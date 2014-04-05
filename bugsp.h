@@ -2,6 +2,7 @@
 #define BUGSP_H
 
 #define ERROR_BUFFER_LEN 512
+#define STDLIB_PATH "stdlib.bsp"
 
 #define LASSERT(args, cond, fmt, ...)             \
     if (!(cond)) {                                \

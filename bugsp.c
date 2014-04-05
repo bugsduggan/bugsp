@@ -1008,6 +1008,14 @@ int main(int argc, char**argv) {
     lenv* e = lenv_new();
     lenv_add_builtins(e);
 
+    /* load stdlib */
+    lval* path = lval_add(lval_sexpr(), lval_str(STDLIB_PATH));
+    lval* x = builtin_load(e, path);
+    if (x->type == LVAL_ERR) {
+        lval_println(x);
+    }
+    lval_del(x);
+
     if (argc >= 2) {
         for (int i = 1; i < argc; i++) {
             lval* args = lval_add(lval_sexpr(), lval_str(argv[i]));
