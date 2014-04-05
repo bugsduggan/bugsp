@@ -681,6 +681,60 @@ lval* builtin_ne(lenv* e, lval* a) {
     return lval_num(r);
 }
 
+lval* builtin_and(lenv* e, lval* a) {
+    LASSERT_NUM("&&", a, 2);
+    LASSERT_TYPE("&&", a, 0, LVAL_NUM);
+    LASSERT_TYPE("&&", a, 1, LVAL_NUM);
+
+    int r = (a->cell[0]->num == 1 && a->cell[1]->num == 1);
+    lval_del(a);
+    return lval_num(r);
+}
+
+lval* builtin_or(lenv* e, lval* a) {
+    LASSERT_NUM("||", a, 2);
+    LASSERT_TYPE("||", a, 0, LVAL_NUM);
+    LASSERT_TYPE("||", a, 1, LVAL_NUM);
+
+    int r = (a->cell[0]->num == 1 || a->cell[1]->num == 1);
+    lval_del(a);
+    return lval_num(r);
+}
+
+lval* builtin_not(lenv* e, lval* a) {
+    LASSERT_NUM("!", a, 1);
+    LASSERT_TYPE("!", a, 0, LVAL_NUM);
+
+    int r;
+    if (a->cell[0]->num == 1) {
+        r = 0;
+    } else {
+        r = 1;
+    }
+    lval_del(a);
+    return lval_num(r);
+}
+
+lval* builtin_if(lenv* e, lval* a) {
+    LASSERT_NUM("if", a, 3);
+    LASSERT_TYPE("if", a, 0, LVAL_NUM);
+    LASSERT_TYPE("if", a, 1, LVAL_QEXPR);
+    LASSERT_TYPE("if", a, 2, LVAL_QEXPR);
+
+    lval* x;
+    a->cell[1]->type = LVAL_SEXPR;
+    a->cell[2]->type = LVAL_SEXPR;
+
+    if (a->cell[0]->num) {
+        x = lval_eval(e, lval_pop(a, 1));
+    } else {
+        x = lval_eval(e, lval_pop(a, 2));
+    }
+
+    lval_del(a);
+    return x;
+}
+
 lval* builtin_lambda(lenv* e, lval* a) {
     LASSERT_NUM("\\", a, 2);
     LASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
@@ -759,6 +813,10 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, ">=",   builtin_ge);
     lenv_add_builtin(e, "==",   builtin_eq);
     lenv_add_builtin(e, "!=",   builtin_ne);
+    lenv_add_builtin(e, "&&",   builtin_and);
+    lenv_add_builtin(e, "||",   builtin_or);
+    lenv_add_builtin(e, "!",    builtin_not);
+    lenv_add_builtin(e, "if",   builtin_if);
     lenv_add_builtin(e, "\\",   builtin_lambda);
     lenv_add_builtin(e, "def",  builtin_def);
     lenv_add_builtin(e, "=",    builtin_put);
@@ -775,13 +833,13 @@ int main(int argc, char**argv) {
     mpc_parser_t* Bugsp  = mpc_new("bugsp");
 
     mpca_lang(MPC_LANG_DEFAULT,
-        "                                                      \
-            number : /-?[0-9]+/ ;                              \
-            symbol : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;        \
-            sexpr  : '(' <expr>* ')' ;                         \
-            qexpr  : '{' <expr>* '}' ;                         \
-            expr   : <number> | <symbol> | <sexpr> | <qexpr> ; \
-            bugsp  : /^/ <expr>* /$/ ;                         \
+        "                                                       \
+            number : /-?[0-9]+/ ;                               \
+            symbol : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&|]+/ ;        \
+            sexpr  : '(' <expr>* ')' ;                          \
+            qexpr  : '{' <expr>* '}' ;                          \
+            expr   : <number> | <symbol> | <sexpr> | <qexpr> ;  \
+            bugsp  : /^/ <expr>* /$/ ;                          \
         ",
         Number, Symbol, Sexpr, Qexpr, Expr, Bugsp);
 
