@@ -1009,7 +1009,7 @@ int main(int argc, char**argv) {
     lenv_add_builtins(e);
 
     /* load stdlib */
-    lval* path = lval_add(lval_sexpr(), lval_str(STDLIB_PATH));
+    lval* path = lval_add(lval_sexpr(), lval_str(getenv("BUGSP_STDLIB_PATH")));
     lval* x = builtin_load(e, path);
     if (x->type == LVAL_ERR) {
         lval_println(x);
@@ -1033,7 +1033,6 @@ int main(int argc, char**argv) {
 
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Bugsp, &r)) {
-            //mpc_ast_print(r.output);
             lval* x = lval_eval(e, lval_read(r.output));
             lval_println(x);
             lval_del(x);
