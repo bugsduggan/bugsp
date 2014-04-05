@@ -31,6 +31,13 @@ lval* lval_num(long x) {
     return v;
 }
 
+lval* lval_bool(int x) {
+    lval* v = malloc(sizeof(lval));
+    v->type = LVAL_BOOL;
+    v->num = x;
+    return v;
+}
+
 lval* lval_sym(char* s) {
     lval* v = malloc(sizeof(lval));
     v->type = LVAL_SYM;
@@ -74,10 +81,11 @@ lval* lval_qexpr(void) {
 
 void lval_del(lval* v) {
     switch(v->type) {
-        case LVAL_NUM:
-            break;
         case LVAL_ERR:
             free(v->err);
+            break;
+        case LVAL_NUM:
+        case LVAL_BOOL:
             break;
         case LVAL_SYM:
             free(v->sym);
@@ -196,6 +204,7 @@ lval* lval_copy(lval* v) {
             strcpy(x->err, v->err);
             break;
         case LVAL_NUM:
+        case LVAL_BOOL:
             x->num = v->num;
             break;
         case LVAL_SYM:
@@ -290,6 +299,13 @@ void lval_print(lval* v) {
             break;
         case LVAL_NUM:
             printf("%li", v->num);
+            break;
+        case LVAL_BOOL:
+            if (v->num == 0) {
+                printf("False");
+            } else {
+                printf("True");
+            }
             break;
         case LVAL_SYM:
             printf("%s", v->sym);
@@ -419,6 +435,7 @@ int lval_eq(lval* x, lval* y) {
         case LVAL_ERR:
             return (strcmp(x->err, y->err) == 0);
         case LVAL_NUM:
+        case LVAL_BOOL:
             return (x->num == y->num);
         case LVAL_SYM:
             return (strcmp(x->sym, y->sym) == 0);
@@ -451,6 +468,9 @@ char* ltype_name(int t) {
             break;
         case LVAL_NUM:
             return "Number";
+            break;
+        case LVAL_BOOL:
+            return "Bool";
             break;
         case LVAL_SYM:
             return "Symbol";
@@ -623,6 +643,15 @@ lval* builtin_div(lenv* e, lval* a) {
     return x;
 }
 
+lval* builtin_bool(lenv* e, lval* a) {
+    LASSERT_NUM("bool", a, 1);
+    LASSERT_TYPE("bool", a, 0, LVAL_NUM);
+
+    lval* x = lval_bool(a->cell[0]->num);
+    lval_del(a);
+    return x;
+}
+
 lval* builtin_lt(lenv* e, lval* a) {
     LASSERT_NUM("<", a, 2);
     LASSERT_TYPE("<", a, 0, LVAL_NUM);
@@ -631,7 +660,7 @@ lval* builtin_lt(lenv* e, lval* a) {
     int x = a->cell[0]->num;
     int y = a->cell[1]->num;
     lval_del(a);
-    return lval_num(x < y);
+    return lval_bool(x < y);
 }
 
 lval* builtin_gt(lenv* e, lval* a) {
@@ -642,7 +671,7 @@ lval* builtin_gt(lenv* e, lval* a) {
     int x = a->cell[0]->num;
     int y = a->cell[1]->num;
     lval_del(a);
-    return lval_num(x > y);
+    return lval_bool(x > y);
 }
 
 lval* builtin_le(lenv* e, lval* a) {
@@ -653,7 +682,7 @@ lval* builtin_le(lenv* e, lval* a) {
     int x = a->cell[0]->num;
     int y = a->cell[1]->num;
     lval_del(a);
-    return lval_num(x <= y);
+    return lval_bool(x <= y);
 }
 
 lval* builtin_ge(lenv* e, lval* a) {
@@ -664,46 +693,46 @@ lval* builtin_ge(lenv* e, lval* a) {
     int x = a->cell[0]->num;
     int y = a->cell[1]->num;
     lval_del(a);
-    return lval_num(x >= y);
+    return lval_bool(x >= y);
 }
 
 lval* builtin_eq(lenv* e, lval* a) {
     LASSERT_NUM("==", a, 2);
     int r = lval_eq(a->cell[0], a->cell[1]);
     lval_del(a);
-    return lval_num(r);
+    return lval_bool(r);
 }
 
 lval* builtin_ne(lenv* e, lval* a) {
     LASSERT_NUM("!=", a, 2);
     int r = !lval_eq(a->cell[0], a->cell[1]);
     lval_del(a);
-    return lval_num(r);
+    return lval_bool(r);
 }
 
 lval* builtin_and(lenv* e, lval* a) {
     LASSERT_NUM("&&", a, 2);
-    LASSERT_TYPE("&&", a, 0, LVAL_NUM);
-    LASSERT_TYPE("&&", a, 1, LVAL_NUM);
+    LASSERT_TYPE("&&", a, 0, LVAL_BOOL);
+    LASSERT_TYPE("&&", a, 1, LVAL_BOOL);
 
     int r = (a->cell[0]->num == 1 && a->cell[1]->num == 1);
     lval_del(a);
-    return lval_num(r);
+    return lval_bool(r);
 }
 
 lval* builtin_or(lenv* e, lval* a) {
     LASSERT_NUM("||", a, 2);
-    LASSERT_TYPE("||", a, 0, LVAL_NUM);
-    LASSERT_TYPE("||", a, 1, LVAL_NUM);
+    LASSERT_TYPE("||", a, 0, LVAL_BOOL);
+    LASSERT_TYPE("||", a, 1, LVAL_BOOL);
 
     int r = (a->cell[0]->num == 1 || a->cell[1]->num == 1);
     lval_del(a);
-    return lval_num(r);
+    return lval_bool(r);
 }
 
 lval* builtin_not(lenv* e, lval* a) {
     LASSERT_NUM("!", a, 1);
-    LASSERT_TYPE("!", a, 0, LVAL_NUM);
+    LASSERT_TYPE("!", a, 0, LVAL_BOOL);
 
     int r;
     if (a->cell[0]->num == 1) {
@@ -712,12 +741,12 @@ lval* builtin_not(lenv* e, lval* a) {
         r = 1;
     }
     lval_del(a);
-    return lval_num(r);
+    return lval_bool(r);
 }
 
 lval* builtin_if(lenv* e, lval* a) {
     LASSERT_NUM("if", a, 3);
-    LASSERT_TYPE("if", a, 0, LVAL_NUM);
+    LASSERT_TYPE("if", a, 0, LVAL_BOOL);
     LASSERT_TYPE("if", a, 1, LVAL_QEXPR);
     LASSERT_TYPE("if", a, 2, LVAL_QEXPR);
 
@@ -807,6 +836,7 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, "-",    builtin_sub);
     lenv_add_builtin(e, "*",    builtin_mul);
     lenv_add_builtin(e, "/",    builtin_div);
+    lenv_add_builtin(e, "bool", builtin_bool);
     lenv_add_builtin(e, "<",    builtin_lt);
     lenv_add_builtin(e, ">",    builtin_gt);
     lenv_add_builtin(e, "<=",   builtin_le);

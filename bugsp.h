@@ -47,6 +47,7 @@ typedef struct lenv lenv;
 enum {
     LVAL_ERR,
     LVAL_NUM,
+    LVAL_BOOL,
     LVAL_SYM,
     LVAL_FUN,
     LVAL_SEXPR,
@@ -82,6 +83,7 @@ struct lenv {
 
 lval* lval_err(char* fmt, ...);
 lval* lval_num(long x);
+lval* lval_bool(int x);
 lval* lval_sym(char* s);
 lval* lval_fun(lbuiltin func);
 lval* lval_lambda(lval* formals, lval* body);
@@ -131,6 +133,7 @@ lval* builtin_add(lenv* e, lval* a);
 lval* builtin_sub(lenv* e, lval* a);
 lval* builtin_mul(lenv* e, lval* a);
 lval* builtin_div(lenv* e, lval* a);
+lval* builtin_bool(lenv* e, lval* a);
 lval* builtin_lt(lenv* e, lval* a);
 lval* builtin_gt(lenv* e, lval* a);
 lval* builtin_le(lenv* e, lval* a);
