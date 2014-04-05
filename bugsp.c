@@ -529,10 +529,9 @@ lval* builtin_div(lenv* e, lval* a) {
             lval_del(x);
             lval_del(y);
             lval_del(a);
-            x = lval_err("division by zero");
-        } else {
-            x->num /= y->num;
+            return lval_err("division by zero");
         }
+        x->num /= y->num;
         lval_del(y);
     }
 
