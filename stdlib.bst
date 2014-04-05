@@ -92,6 +92,13 @@
 ; last item
 (fun {last l} {nth (- (len l) 1) l})
 
+; length of list
+(fun {len l} {
+    if (== l {})
+        {0}
+        {(+ 1 (len (tail l)))}
+})
+
 ; apply function to list
 (fun {map f l} {
     if (== l {})
@@ -173,7 +180,7 @@
         {join (list (join (head x) (head y))) (zip (tail x) (tail y))}
 })
 
-;unzip
+; unzip
 (fun {unzip l} {
     if (== l {})
         {{{} {}}}

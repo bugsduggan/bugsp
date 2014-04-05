@@ -600,15 +600,6 @@ lval* builtin_join(lenv* e, lval* a) {
     return x;
 }
 
-lval* builtin_len(lenv* e, lval* a) {
-    LASSERT_NUM("len", a, 1);
-    LASSERT_TYPE("len", a, 0, LVAL_QEXPR);
-
-    lval* v = lval_num(a->cell[0]->count);
-    lval_del(a);
-    return v;
-}
-
 lval* builtin_add(lenv* e, lval* a) {
     LASSERT_NUM_MIN("+", a, 2);
 
@@ -834,11 +825,12 @@ lval* builtin_var(lenv* e, lval* a, char* func) {
     lval* syms = a->cell[0];
     for (int i = 0; i < syms->count; i++) {
         LASSERT(a, (syms->cell[i]->type == LVAL_SYM),
-                "'var' cannot define non-symbol (%s)", ltype_name(syms->cell[i]->type));
+                "'%s' cannot define non-symbol (%s)",
+                func, ltype_name(syms->cell[i]->type));
     }
 
     LASSERT(a, (syms->count == a->count - 1),
-            "'var' passed too many arguments for symbols");
+            "'%s' passed too many arguments for symbols", func);
 
     for (int i = 0; i < syms->count; i++) {
         if (strcmp(func, "def") == 0) {
@@ -933,7 +925,6 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, "init",  builtin_init);
     lenv_add_builtin(e, "eval",  builtin_eval);
     lenv_add_builtin(e, "join",  builtin_join);
-    lenv_add_builtin(e, "len",   builtin_len);
     lenv_add_builtin(e, "+",     builtin_add);
     lenv_add_builtin(e, "-",     builtin_sub);
     lenv_add_builtin(e, "*",     builtin_mul);
