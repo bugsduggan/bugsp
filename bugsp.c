@@ -1027,8 +1027,11 @@ int main(int argc, char**argv) {
         }
     }
 
+    int num_inputs = 0;
     int running = 1;
     while(running) {
+        num_inputs++;
+        printf("[%d] ", num_inputs);
         char* input = readline("bugsp> ");
         add_history(input);
 
