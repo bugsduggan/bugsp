@@ -861,6 +861,61 @@ lval* builtin_put(lenv* e, lval* a) {
     return builtin_var(e, a, "=");
 }
 
+lval* builtin_load(lenv* e, lval* a) {
+    LASSERT_NUM("load", a, 1);
+    LASSERT_TYPE("load", a, 0, LVAL_STR);
+
+    mpc_result_t r;
+    if (mpc_parse_contents(a->cell[0]->str, Bugsp, &r)) {
+        lval* expr = lval_read(r.output);
+        mpc_ast_delete(r.output);
+
+        while (expr->count) {
+            lval* x = lval_eval(e, lval_pop(expr, 0));
+            if (x->type == LVAL_ERR) {
+                lval_println(x);
+            }
+            lval_del(x);
+        }
+
+        lval_del(expr);
+        lval_del(a);
+
+        return lval_sexpr();
+    } else {
+        /* parser error */
+        char* err_msg = mpc_err_string(r.error);
+        mpc_err_delete(r.error);
+
+        lval* err = lval_err("Could not load library %s", err_msg);
+        free(err_msg);
+        lval_del(a);
+
+        return err;
+    }
+}
+
+lval* builtin_print(lenv* e, lval* a) {
+    for (int i = 0; i < a->count; i++) {
+        lval_print(a->cell[i]);
+        putchar(' ');
+    }
+
+    putchar('\n');
+    lval_del(a);
+
+    return lval_sexpr();
+}
+
+lval* builtin_error(lenv* e, lval* a) {
+    LASSERT_NUM("error", a, 1);
+    LASSERT_TYPE("error", a, 0, LVAL_STR);
+
+    lval* err = lval_err(a->cell[0]->str);
+    lval_del(a);
+    return err;
+}
+
 /* deal with builtins */
 
 void lenv_add_builtin(lenv* e, char* name, lbuiltin func) {
@@ -872,44 +927,47 @@ void lenv_add_builtin(lenv* e, char* name, lbuiltin func) {
 }
 
 void lenv_add_builtins(lenv* e) {
-    lenv_add_builtin(e, "list", builtin_list);
-    lenv_add_builtin(e, "head", builtin_head);
-    lenv_add_builtin(e, "tail", builtin_tail);
-    lenv_add_builtin(e, "init", builtin_init);
-    lenv_add_builtin(e, "eval", builtin_eval);
-    lenv_add_builtin(e, "join", builtin_join);
-    lenv_add_builtin(e, "len",  builtin_len);
-    lenv_add_builtin(e, "+",    builtin_add);
-    lenv_add_builtin(e, "-",    builtin_sub);
-    lenv_add_builtin(e, "*",    builtin_mul);
-    lenv_add_builtin(e, "/",    builtin_div);
-    lenv_add_builtin(e, "bool", builtin_bool);
-    lenv_add_builtin(e, "<",    builtin_lt);
-    lenv_add_builtin(e, ">",    builtin_gt);
-    lenv_add_builtin(e, "<=",   builtin_le);
-    lenv_add_builtin(e, ">=",   builtin_ge);
-    lenv_add_builtin(e, "==",   builtin_eq);
-    lenv_add_builtin(e, "!=",   builtin_ne);
-    lenv_add_builtin(e, "&&",   builtin_and);
-    lenv_add_builtin(e, "||",   builtin_or);
-    lenv_add_builtin(e, "!",    builtin_not);
-    lenv_add_builtin(e, "if",   builtin_if);
-    lenv_add_builtin(e, "\\",   builtin_lambda);
-    lenv_add_builtin(e, "def",  builtin_def);
-    lenv_add_builtin(e, "=",    builtin_put);
+    lenv_add_builtin(e, "list",  builtin_list);
+    lenv_add_builtin(e, "head",  builtin_head);
+    lenv_add_builtin(e, "tail",  builtin_tail);
+    lenv_add_builtin(e, "init",  builtin_init);
+    lenv_add_builtin(e, "eval",  builtin_eval);
+    lenv_add_builtin(e, "join",  builtin_join);
+    lenv_add_builtin(e, "len",   builtin_len);
+    lenv_add_builtin(e, "+",     builtin_add);
+    lenv_add_builtin(e, "-",     builtin_sub);
+    lenv_add_builtin(e, "*",     builtin_mul);
+    lenv_add_builtin(e, "/",     builtin_div);
+    lenv_add_builtin(e, "bool",  builtin_bool);
+    lenv_add_builtin(e, "<",     builtin_lt);
+    lenv_add_builtin(e, ">",     builtin_gt);
+    lenv_add_builtin(e, "<=",    builtin_le);
+    lenv_add_builtin(e, ">=",    builtin_ge);
+    lenv_add_builtin(e, "==",    builtin_eq);
+    lenv_add_builtin(e, "!=",    builtin_ne);
+    lenv_add_builtin(e, "&&",    builtin_and);
+    lenv_add_builtin(e, "||",    builtin_or);
+    lenv_add_builtin(e, "!",     builtin_not);
+    lenv_add_builtin(e, "if",    builtin_if);
+    lenv_add_builtin(e, "\\",    builtin_lambda);
+    lenv_add_builtin(e, "def",   builtin_def);
+    lenv_add_builtin(e, "=",     builtin_put);
+    lenv_add_builtin(e, "load",  builtin_load);
+    lenv_add_builtin(e, "print", builtin_print);
+    lenv_add_builtin(e, "error", builtin_error);
 }
 
 /* main */
 
 int main(int argc, char**argv) {
-    mpc_parser_t* Number  = mpc_new("number");
-    mpc_parser_t* Symbol  = mpc_new("symbol");
-    mpc_parser_t* String  = mpc_new("string");
-    mpc_parser_t* Comment = mpc_new("comment");
-    mpc_parser_t* Sexpr   = mpc_new("sexpr");
-    mpc_parser_t* Qexpr   = mpc_new("qexpr");
-    mpc_parser_t* Expr    = mpc_new("expr");
-    mpc_parser_t* Bugsp   = mpc_new("bugsp");
+    Number  = mpc_new("number");
+    Symbol  = mpc_new("symbol");
+    String  = mpc_new("string");
+    Comment = mpc_new("comment");
+    Sexpr   = mpc_new("sexpr");
+    Qexpr   = mpc_new("qexpr");
+    Expr    = mpc_new("expr");
+    Bugsp   = mpc_new("bugsp");
 
     mpca_lang(MPC_LANG_DEFAULT,
         "                                                 \
@@ -930,6 +988,17 @@ int main(int argc, char**argv) {
 
     lenv* e = lenv_new();
     lenv_add_builtins(e);
+
+    if (argc >= 2) {
+        for (int i = 1; i < argc; i++) {
+            lval* args = lval_add(lval_sexpr(), lval_str(argv[i]));
+            lval* x = builtin_load(e, args);
+            if (x->type == LVAL_ERR) {
+                lval_println(x);
+            }
+            lval_del(x);
+        }
+    }
 
     while(1) {
         char* input = readline("bugsp> ");

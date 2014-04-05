@@ -153,8 +153,22 @@ lval* builtin_lambda(lenv* e, lval* a);
 lval* bulitin_var(lenv* e, lval* a, char* func);
 lval* builtin_def(lenv* e, lval* a);
 lval* builtin_put(lenv* e, lval* a);
+lval* builtin_load(lenv* e, lval* a);
+lval* builtin_print(lenv* e, lval* a);
+lval* builtin_error(lenv* e, lval* a);
 
 void lenv_add_builtin(lenv* e, char* name, lbuiltin func);
 void lenv_add_builtins(lenv* e);
+
+/* mpc parsers */
+
+mpc_parser_t* Number;
+mpc_parser_t* Symbol;
+mpc_parser_t* String;
+mpc_parser_t* Comment;
+mpc_parser_t* Sexpr;
+mpc_parser_t* Qexpr;
+mpc_parser_t* Expr;
+mpc_parser_t* Bugsp;
 
 #endif
