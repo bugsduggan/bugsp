@@ -10,6 +10,33 @@
         return err;                               \
     }
 
+#define LASSERT_NUM(func, args, exp)                                            \
+    if (args->count != exp) {                                                   \
+        lval* err = lval_err(                                                   \
+            "'%s' incorrect number of arguments received, expected %d, got %d", \
+            func, exp, args->count);                                            \
+        lval_del(args);                                                         \
+        return err;                                                             \
+    }
+
+#define LASSERT_NUM_MIN(func, args, exp)                      \
+    if (args->count < exp) {                                  \
+        lval* err = lval_err(                                 \
+            "'%s' not enough arguments, expected %d, got %d", \
+            func, exp, args->count);                          \
+        lval_del(args);                                       \
+        return err;                                           \
+    }
+
+#define LASSERT_TYPE(func, args, i, exp)                             \
+    if (args->cell[i]->type != exp) {                                \
+        lval* err = lval_err(                                        \
+            "'%s' incorrect type for arg %d, expected %s, got %s",   \
+            func, i, ltype_name(exp), ltype_name(a->cell[i]->type)); \
+        lval_del(args);                                              \
+        return err;                                                  \
+    }
+
 struct lval;
 struct lenv;
 typedef struct lval lval;
@@ -103,6 +130,10 @@ lval* builtin_add(lenv* e, lval* a);
 lval* builtin_sub(lenv* e, lval* a);
 lval* builtin_mul(lenv* e, lval* a);
 lval* builtin_div(lenv* e, lval* a);
+lval* builtin_lt(lenv* e, lval* a);
+lval* builtin_gt(lenv* e, lval* a);
+lval* builtin_le(lenv* e, lval* a);
+lval* builtin_ge(lenv* e, lval* a);
 lval* builtin_lambda(lenv* e, lval* a);
 lval* bulitin_var(lenv* e, lval* a, char* func);
 lval* builtin_def(lenv* e, lval* a);
