@@ -5,6 +5,9 @@
 ;;; Atoms
 (def {True} (bool 1))
 (def {False} (bool 0))
+(def {and} (&&))
+(def {or} (||))
+(def {eq} (==))
 
 ;;; Functions
 
