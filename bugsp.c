@@ -1027,9 +1027,15 @@ int main(int argc, char**argv) {
         }
     }
 
-    while(1) {
+    int running = 1;
+    while(running) {
         char* input = readline("bugsp> ");
         add_history(input);
+
+        if (strcmp(input, "quit") == 0) {
+            running = 0;
+            continue;
+        }
 
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Bugsp, &r)) {
@@ -1044,6 +1050,7 @@ int main(int argc, char**argv) {
 
         free(input);
     }
+    printf("Bye!\n");
 
     lenv_del(e);
     mpc_cleanup(8, Number, Symbol, String, Comment, Sexpr, Qexpr, Expr, Bugsp);
