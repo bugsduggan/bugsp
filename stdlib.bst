@@ -30,8 +30,8 @@
 (fun {pack f & xs} {f xs})
 
 ; aliases
-(def {curry} {unpack})
-(def {uncurry} {pack})
+(def {curry} (unpack))
+(def {uncurry} (pack))
 
 ; perform in sequence
 (fun {do & l} {
@@ -56,7 +56,7 @@
 (fun {max & xs} {
     if (== (tail xs) {}) {fst xs}
         {do
-            (= {rest} (unpack min (tail xs)))
+            (= {rest} (unpack max (tail xs)))
             (= {item} (fst xs))
             (if (> item rest) {item} {rest})
         }
