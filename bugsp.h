@@ -109,6 +109,7 @@ lval* lval_copy(lval* v);
 lval* lval_eval_sexpr(lenv* e, lval* v);
 lval* lval_eval(lenv* e, lval* v);
 lval* lval_call(lenv* e, lval* f, lval* a);
+int lval_eq(lval* x, lval* y);
 
 /* lenv helpers */
 
@@ -134,6 +135,8 @@ lval* builtin_lt(lenv* e, lval* a);
 lval* builtin_gt(lenv* e, lval* a);
 lval* builtin_le(lenv* e, lval* a);
 lval* builtin_ge(lenv* e, lval* a);
+lval* builtin_eq(lenv* e, lval* a);
+lval* builtin_ne(lenv* e, lval* a);
 lval* builtin_lambda(lenv* e, lval* a);
 lval* bulitin_var(lenv* e, lval* a, char* func);
 lval* builtin_def(lenv* e, lval* a);

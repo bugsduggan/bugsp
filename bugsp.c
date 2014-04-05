@@ -410,6 +410,40 @@ lval* lval_call(lenv* e, lval* f, lval* a) {
     }
 }
 
+int lval_eq(lval* x, lval* y) {
+    if (x->type != y->type) {
+        return 0;
+    }
+
+    switch (x->type) {
+        case LVAL_ERR:
+            return (strcmp(x->err, y->err) == 0);
+        case LVAL_NUM:
+            return (x->num == y->num);
+        case LVAL_SYM:
+            return (strcmp(x->sym, y->sym) == 0);
+        case LVAL_FUN:
+            if (x->builtin) {
+                return x->builtin == y->builtin;
+            } else {
+                return lval_eq(x->formals, y->formals) && lval_eq(x->body, y->body);
+            }
+        case LVAL_SEXPR:
+        case LVAL_QEXPR:
+            if (x->count != y->count) {
+                return 0;
+            }
+            for (int i = 0; i < x->count; i++) {
+                if (!lval_eq(x->cell[0], y->cell[0])) {
+                    return 0;
+                }
+            }
+            return 1;
+    }
+
+    return 0;
+}
+
 char* ltype_name(int t) {
     switch(t) {
         case LVAL_ERR:
@@ -633,6 +667,20 @@ lval* builtin_ge(lenv* e, lval* a) {
     return lval_num(x >= y);
 }
 
+lval* builtin_eq(lenv* e, lval* a) {
+    LASSERT_NUM("==", a, 2);
+    int r = lval_eq(a->cell[0], a->cell[1]);
+    lval_del(a);
+    return lval_num(r);
+}
+
+lval* builtin_ne(lenv* e, lval* a) {
+    LASSERT_NUM("!=", a, 2);
+    int r = !lval_eq(a->cell[0], a->cell[1]);
+    lval_del(a);
+    return lval_num(r);
+}
+
 lval* builtin_lambda(lenv* e, lval* a) {
     LASSERT_NUM("\\", a, 2);
     LASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
@@ -709,6 +757,8 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, ">",    builtin_gt);
     lenv_add_builtin(e, "<=",   builtin_le);
     lenv_add_builtin(e, ">=",   builtin_ge);
+    lenv_add_builtin(e, "==",   builtin_eq);
+    lenv_add_builtin(e, "!=",   builtin_ne);
     lenv_add_builtin(e, "\\",   builtin_lambda);
     lenv_add_builtin(e, "def",  builtin_def);
     lenv_add_builtin(e, "=",    builtin_put);
