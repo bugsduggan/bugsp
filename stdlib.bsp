@@ -7,6 +7,7 @@
 (def {False} (bool 0))
 (def {and} (&&))
 (def {or} (||))
+(def {not} (!))
 (def {eq} (==))
 
 ;;; Functions
