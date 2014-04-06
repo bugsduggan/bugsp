@@ -1003,7 +1003,7 @@ int main(int argc, char**argv) {
         Number, Symbol, String, Comment, Sexpr, Qexpr, Expr, Bugsp);
 
     puts("Bugsp version 0.0.1");
-    puts("Press CTRL+C to exit\n");
+    puts("Type 'quit' to exit\n");
 
     lenv* e = lenv_new();
     lenv_add_builtins(e);
