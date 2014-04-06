@@ -97,9 +97,7 @@
 
 ; length of list
 (fun {len l} {
-    if (== l {})
-        {0}
-        {(+ 1 (len (tail l)))}
+    (foldl (\ {x _} {+ 1 x}) 0 l)
 })
 
 ; apply function to list
@@ -171,9 +169,7 @@
 
 ; elem in list
 (fun {elem x l} {
-    if (== l {})
-        {(bool 0)}
-        {if (== x (fst l)) {True} {elem x (tail l)}}
+    (foldl (\ {a b} {|| a (== b x)}) False l)
 })
 
 ; zip
