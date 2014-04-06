@@ -1,0 +1,12 @@
+(fun {_count n} {
+    if (<= n 0)
+        {{}}
+        {(join (_count (- n 1)) (list n))}
+})
+(fun {count n} {
+    map (\ {x} {- x 1}) (_count n)
+})
+
+(fun {range x y} {
+    map (\ {n} {+ x n}) (count (- y x))
+})
